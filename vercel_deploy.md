@@ -22,7 +22,11 @@ npm i -g vercel
 
 ## Step 3: Set Environment Variables
 In Vercel dashboard → Settings → Environment Variables:
-- `GEMINI_API_KEY`: Your Gemini API key (optional)
+- **Name**: `GEMINI_API_KEY`
+- **Value**: Your actual Gemini API key (optional)
+- **Environment**: Production, Preview, Development (select all)
+
+**Note**: Don't use the `@` symbol - just enter your actual API key value.
 
 ## Step 4: Get Your URL
 Vercel gives you a URL like:

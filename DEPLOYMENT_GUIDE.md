@@ -71,7 +71,10 @@
 
 3. **Set Environment Variables:**
    - In Vercel dashboard → Settings → Environment Variables
-   - Add: `GEMINI_API_KEY` = your API key (optional)
+   - **Name**: `GEMINI_API_KEY`
+   - **Value**: Your actual Gemini API key (optional)
+   - **Environment**: Select all (Production, Preview, Development)
+   - **Note**: Don't use `@` symbol - enter the actual key value
 
 4. **Get Your URL:**
    - Vercel gives you: `https://phishing-detector-kyne0328.vercel.app`
