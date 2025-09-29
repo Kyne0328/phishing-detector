@@ -1,165 +1,82 @@
-# 🛡️ Advanced Phishing Detection System
+# Phishing Link Detector
 
-A sophisticated machine learning-based phishing URL detection system with 93.3% accuracy, featuring hierarchical clustering, AI-powered analysis, and a beautiful web interface.
+A web application that uses hierarchical clustering machine learning to detect phishing URLs. Built with Flask and featuring a sleek dark mode UI.
 
-## ✨ Features
+## Features
 
-- **🎯 High Accuracy**: 93.3% overall accuracy, 87.5% phishing detection
-- **🤖 AI-Powered**: Gemini AI integration for intelligent explanations
-- **📊 Advanced Analytics**: Real-time URL analysis with detailed statistics
-- **🌐 Web Interface**: Modern, responsive UI with interactive visualizations
-- **🔍 Domain Analysis**: Sophisticated pattern recognition for suspicious domains
-- **📈 Feature Contributions**: Detailed breakdown of what influences each decision
-- **🚀 Cloud Ready**: One-click deployment to Railway, Render, Heroku, or Google Cloud
+- **Hierarchical Clustering Model**: Uses scikit-learn's AgglomerativeClustering for URL analysis
+- **Dark Mode UI**: Modern, responsive design with gradient accents
+- **Real-time Analysis**: Instant URL checking with confidence scores
+- **Animated Results**: Smooth fade-in animations for better UX
+- **Feature Extraction**: Analyzes URL characteristics like length, special characters, suspicious patterns, and more
 
-## 🚀 Quick Start
+## Installation
 
-### Local Development
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/phishing-detector.git
-cd phishing-detector
+1. Clone or download this repository
+2. Install the required dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-# Install dependencies
-pip install -r requirements.txt
+## Usage
 
-# Run the application
-python app.py
-```
+1. Run the Flask application:
+   ```bash
+   python app.py
+   ```
 
-Visit `http://localhost:5000` to access the web interface.
+2. Open your web browser and navigate to `http://localhost:5000`
 
-### Cloud Deployment
-Choose your preferred platform:
+3. Enter a URL in the input field and click "Check" to analyze it
 
-- **Railway** (Recommended): [Deploy Guide](DEPLOYMENT_GUIDE.md#railway)
-- **Render**: [Deploy Guide](DEPLOYMENT_GUIDE.md#render)
-- **Heroku**: [Deploy Guide](DEPLOYMENT_GUIDE.md#heroku)
-- **Google Cloud Run**: [Deploy Guide](DEPLOYMENT_GUIDE.md#google-cloud-run)
+## How It Works
 
-## 🧠 How It Works
+The application uses hierarchical clustering to classify URLs as either safe or phishing attempts. It uses an optimized set of 15 most important features from the original 30-feature dataset:
 
-### Machine Learning Pipeline
-1. **Feature Extraction**: Analyzes 31 URL characteristics including:
-   - SSL/TLS indicators
-   - Domain structure and length
-   - Suspicious patterns and keywords
-   - Subdomain analysis
-   - TLD patterns
+**Top 5 Most Important Features:**
+1. **SSLfinal_State** (31.97%) - SSL certificate state
+2. **URL_of_Anchor** (25.00%) - URL of anchor analysis  
+3. **web_traffic** (7.08%) - Web traffic analysis
+4. **having_Sub_Domain** (6.95%) - Number of subdomains
+5. **Links_in_tags** (4.39%) - Links in tags analysis
 
-2. **Hierarchical Clustering**: Uses AgglomerativeClustering to group similar URLs
-3. **Nearest Neighbors**: Finds similar URLs in training data for comparison
-4. **Domain Analysis**: Advanced pattern recognition for phishing indicators
-5. **Confidence Scoring**: Multi-factor confidence calculation
+The model is trained on a real dataset of 11,055 samples with known safe and phishing URLs, achieving 97% accuracy with just 15 optimized features instead of all 30.
 
-### AI Integration
-- **Gemini AI**: Provides human-readable explanations of analysis results
-- **Contextual Responses**: Different explanations for different URL types
-- **Fallback System**: Works even without API key
+## UI/UX Features
 
-## 📊 Performance Metrics
+- **Dark Theme**: Gray-900 background with light text
+- **Gradient Headlines**: Blue/teal gradient for main headings
+- **Responsive Design**: Works on desktop and mobile devices
+- **Loading States**: Animated spinner during analysis
+- **Result Cards**: Color-coded results with confidence scores
+- **Smooth Animations**: Fade-in effects and hover animations
 
-| Metric | Performance |
-|--------|-------------|
-| Overall Accuracy | 93.3% |
-| Phishing Detection | 87.5% |
-| Legitimate Detection | 100% |
-| Average Confidence | 90.3% |
-
-## 🛠️ Technology Stack
-
-- **Backend**: Python, Flask
-- **ML**: scikit-learn, scipy, numpy
-- **AI**: Google Generative AI (Gemini)
-- **Frontend**: HTML5, CSS3, JavaScript, Plotly.js
-- **Deployment**: Docker, Railway, Render, Heroku
-
-## 📁 Project Structure
+## File Structure
 
 ```
-phishing-detector/
-├── app.py                 # Main Flask application
-├── arff_parser.py         # Dataset parser
-├── requirements.txt       # Python dependencies
+Hierarchical Clustering/
+├── app.py                 # Main Flask application (optimized with 15 features)
+├── arff_parser.py         # ARFF dataset parser
 ├── templates/
-│   └── index.html        # Web interface
-├── Training Dataset.arff  # Training data
-├── Procfile              # Heroku/Railway deployment
-├── Dockerfile            # Container configuration
-├── render.yaml           # Render deployment config
-└── DEPLOYMENT_GUIDE.md   # Cloud deployment instructions
+│   └── index.html        # HTML template with embedded CSS/JS
+├── test_model.py         # Model testing script
+├── Training Dataset.arff # Training dataset
+├── requirements.txt      # Python dependencies
+└── README.md            # This file
 ```
 
-## 🔧 Configuration
+## Dependencies
 
-### Environment Variables
-- `GEMINI_API_KEY`: Your Google Gemini API key (optional)
-- `PORT`: Server port (default: 5000)
-- `FLASK_ENV`: Environment (development/production)
+- Flask 2.3.3
+- NumPy 1.24.3
+- scikit-learn 1.3.0
+- requests 2.31.0
+- Werkzeug 2.3.7
 
-### API Key Setup
-1. Get your Gemini API key from [Google AI Studio](https://makersuite.google.com/app/apikey)
-2. Set it as an environment variable or in your cloud platform's dashboard
+## Note
 
-## 📈 Usage Examples
-
-### Basic URL Analysis
-```python
-from app import OptimizedHierarchicalDetector
-
-detector = OptimizedHierarchicalDetector()
-detector.train_model('Training Dataset.arff')
-
-# Analyze a URL
-result = detector.predict('https://suspicious-site.com')
-print(f"Is phishing: {result['is_phishing']}")
-print(f"Confidence: {result['confidence']:.1%}")
-```
-
-### Web Interface
-1. Open the web interface
-2. Enter a URL to analyze
-3. View real-time results with:
-   - Phishing/safe classification
-   - Confidence level
-   - Detailed analytics
-   - AI interpretation
-   - Feature contributions
-
-## 🧪 Testing
-
-The system has been tested with:
-- 10 phishing URLs (87.5% detection rate)
-- 7 legitimate URLs (100% detection rate)
-- Various domain patterns and protocols
-- Edge cases and suspicious patterns
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Training dataset from academic research
-- Google Gemini AI for intelligent explanations
-- scikit-learn community for machine learning tools
-- Flask and Python communities
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-1. Check the [Deployment Guide](DEPLOYMENT_GUIDE.md)
-2. Review the [Gemini Setup Guide](GEMINI_SETUP.md)
-3. Open an issue on GitHub
-
----
-
-**⭐ Star this repository if you find it helpful!**
+This is a demonstration application. For production use, you would need:
+- A larger, more diverse training dataset
+- Regular model retraining
+- Additional security features
+- Proper error handling and logging

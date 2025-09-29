@@ -90,15 +90,15 @@
         <div class="max-w-6xl mx-auto">
             <!-- Main Heading -->
             <div class="text-center mb-12">
-                <h1 class="text-5xl md:text-6xl font-bold gradient-text mb-6">
-                    Phishing Link Detector
-                </h1>
-                
-                <!-- Sub-heading -->
+            <h1 class="text-5xl md:text-6xl font-bold gradient-text mb-6">
+                Phishing Link Detector
+            </h1>
+            
+            <!-- Sub-heading -->
                 <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
-                    Leveraging hierarchical clustering to safeguard your digital presence
-                </p>
-                
+                Leveraging hierarchical clustering to safeguard your digital presence
+            </p>
+
                 <!-- Navigation Tabs -->
                 <div class="flex justify-center space-x-4 mb-8">
                     <button id="detectorTab" class="px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold transition-all duration-200 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500">
@@ -117,45 +117,45 @@
             <div id="tabContent">
                 <!-- URL Detector Tab -->
                 <div id="detectorContent" class="tab-content">
-                    <!-- Input Form -->
-                    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 mb-8 border border-gray-700">
-                        <form id="urlForm" class="space-y-6">
-                            <div class="relative">
-                                <input 
-                                    type="url" 
-                                    id="urlInput" 
-                                    placeholder="Enter URL to analyze (e.g., https://example.com)"
-                                    class="w-full px-6 py-4 text-lg bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
-                                    required
-                                >
-                            </div>
-                            
-                            <button 
-                                type="submit" 
-                                id="submitBtn"
-                                class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-                            >
-                                <span id="btnText">Check</span>
-                                <div id="loadingSpinner" class="hidden">
-                                    <div class="spinner mx-auto"></div>
-                                </div>
-                            </button>
-                        </form>
+            <!-- Input Form -->
+            <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 mb-8 border border-gray-700">
+                <form id="urlForm" class="space-y-6">
+                    <div class="relative">
+                        <input 
+                            type="url" 
+                            id="urlInput" 
+                            placeholder="Enter URL to analyze (e.g., https://example.com)"
+                            class="w-full px-6 py-4 text-lg bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                            required
+                        >
                     </div>
-
-                    <!-- Loading State -->
-                    <div id="loadingState" class="hidden">
-                        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
-                            <div class="flex flex-col items-center space-y-4">
-                                <div class="spinner"></div>
-                                <p class="text-lg text-gray-300">Analyzing URL with clustering model...</p>
-                            </div>
+                    
+                    <button 
+                        type="submit" 
+                        id="submitBtn"
+                        class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                    >
+                        <span id="btnText">Check</span>
+                        <div id="loadingSpinner" class="hidden">
+                            <div class="spinner mx-auto"></div>
                         </div>
-                    </div>
+                    </button>
+                </form>
+            </div>
 
-                    <!-- Results Area -->
-                    <div id="resultsArea" class="hidden">
-                        <!-- Results will be dynamically inserted here -->
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden">
+                <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
+                    <div class="flex flex-col items-center space-y-4">
+                        <div class="spinner"></div>
+                        <p class="text-lg text-gray-300">Analyzing URL with clustering model...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Area -->
+            <div id="resultsArea" class="hidden">
+                <!-- Results will be dynamically inserted here -->
                     </div>
                 </div>
 
@@ -333,21 +333,21 @@
                 resultCard.innerHTML = `
                     <div class="space-y-6">
                         <!-- Main Result -->
-                        <div class="flex flex-col items-center space-y-4">
-                            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-red-400">Phishing Attempt Detected</h3>
-                            <p class="text-gray-300 text-center max-w-md">
-                                This URL appears to be suspicious and may be attempting to steal your personal information.
-                            </p>
-                            <div class="text-center">
-                                <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
-                                <div class="text-4xl font-bold text-red-400">${confidence}%</div>
-                            </div>
-                            <div class="text-sm text-gray-400">
-                                <strong>URL:</strong> ${url}
-                            </div>
+                    <div class="flex flex-col items-center space-y-4">
+                        <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-red-400">Phishing Attempt Detected</h3>
+                        <p class="text-gray-300 text-center max-w-md">
+                            This URL appears to be suspicious and may be attempting to steal your personal information.
+                        </p>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
+                            <div class="text-4xl font-bold text-red-400">${confidence}%</div>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            <strong>URL:</strong> ${url}
+                        </div>
                         </div>
                         
                         <!-- AI Interpretation -->
@@ -365,21 +365,21 @@
                 resultCard.innerHTML = `
                     <div class="space-y-6">
                         <!-- Main Result -->
-                        <div class="flex flex-col items-center space-y-4">
-                            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
-                                <i class="fas fa-check-circle text-green-400 text-2xl"></i>
-                            </div>
-                            <h3 class="text-2xl font-bold text-green-400">Link Appears Safe</h3>
-                            <p class="text-gray-300 text-center max-w-md">
-                                This URL appears to be legitimate and safe to visit.
-                            </p>
-                            <div class="text-center">
-                                <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
-                                <div class="text-4xl font-bold text-green-400">${confidence}%</div>
-                            </div>
-                            <div class="text-sm text-gray-400">
-                                <strong>URL:</strong> ${url}
-                            </div>
+                    <div class="flex flex-col items-center space-y-4">
+                        <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+                            <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold text-green-400">Link Appears Safe</h3>
+                        <p class="text-gray-300 text-center max-w-md">
+                            This URL appears to be legitimate and safe to visit.
+                        </p>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
+                            <div class="text-4xl font-bold text-green-400">${confidence}%</div>
+                        </div>
+                        <div class="text-sm text-gray-400">
+                            <strong>URL:</strong> ${url}
+                        </div>
                         </div>
                         
                         <!-- AI Interpretation -->
