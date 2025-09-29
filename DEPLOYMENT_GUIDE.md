@@ -14,6 +14,15 @@
 - ✅ **Custom domain** support
 - ✅ **No credit card** required
 
+## 🚀 **ALTERNATIVE: Vercel (Unlimited Free)**
+
+### Why Vercel?
+- ✅ **Unlimited free deployments**
+- ✅ **Global CDN** for ultra-fast loading
+- ✅ **Automatic HTTPS** and custom domains
+- ✅ **Zero configuration** for Python apps
+- ✅ **Preview deployments** for every PR
+
 ### Steps:
 1. **Push to GitHub:**
    ```bash
@@ -37,6 +46,36 @@
 
 4. **Get Your URL:**
    - Railway gives you a URL like: `https://phishing-detector-production.up.railway.app`
+
+---
+
+## 🚀 **VERCEL (Unlimited Free Deployments)**
+
+### Why Vercel?
+- ✅ **Unlimited free deployments**
+- ✅ **Global CDN** for ultra-fast loading
+- ✅ **Automatic HTTPS** and custom domains
+- ✅ **Zero configuration** for Python apps
+- ✅ **Preview deployments** for every PR
+
+### Steps:
+1. **Push to GitHub** (same as above)
+
+2. **Deploy to Vercel:**
+   - Go to [vercel.com](https://vercel.com)
+   - Sign up with GitHub
+   - Click "New Project"
+   - Import your `phishing-detector` repository
+   - Vercel auto-detects Python and configures everything
+   - Click "Deploy"
+
+3. **Set Environment Variables:**
+   - In Vercel dashboard → Settings → Environment Variables
+   - Add: `GEMINI_API_KEY` = your API key (optional)
+
+4. **Get Your URL:**
+   - Vercel gives you: `https://phishing-detector-kyne0328.vercel.app`
+   - Or configure a custom domain
 
 ---
 
