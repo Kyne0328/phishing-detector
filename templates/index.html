@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phishing Detector</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <style>
+        .gradient-text {
+            background: linear-gradient(135deg, #06b6d4, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .backdrop-blur {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+        
+        .spinner {
+            border: 3px solid #374151;
+            border-top: 3px solid #06b6d4;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .result-card {
+            transition: all 0.3s ease-in-out;
+        }
+        
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 backdrop-blur bg-gray-900/80 border-b border-gray-700">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+                    <i class="fas fa-shield-alt text-white text-lg"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Phishing Detector</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-12">
+        <div class="max-w-6xl mx-auto">
+            <!-- Main Heading -->
+            <div class="text-center mb-12">
+                <h1 class="text-5xl md:text-6xl font-bold gradient-text mb-6">
+                    Phishing Link Detector
+                </h1>
+                
+                <!-- Sub-heading -->
+                <p class="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+                    Leveraging hierarchical clustering to safeguard your digital presence
+                </p>
+                
+                <!-- Navigation Tabs -->
+                <div class="flex justify-center space-x-4 mb-8">
+                    <button id="detectorTab" class="px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold transition-all duration-200 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500">
+                        <i class="fas fa-search mr-2"></i>URL Detector
+                    </button>
+                    <button id="dendrogramTab" class="px-6 py-3 bg-gray-700 text-gray-300 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class="fas fa-sitemap mr-2"></i>Dendrogram
+                    </button>
+                    <button id="analyticsTab" class="px-6 py-3 bg-gray-700 text-gray-300 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500">
+                        <i class="fas fa-chart-bar mr-2"></i>Analytics
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tab Content -->
+            <div id="tabContent">
+                <!-- URL Detector Tab -->
+                <div id="detectorContent" class="tab-content">
+                    <!-- Input Form -->
+                    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 mb-8 border border-gray-700">
+                        <form id="urlForm" class="space-y-6">
+                            <div class="relative">
+                                <input 
+                                    type="url" 
+                                    id="urlInput" 
+                                    placeholder="Enter URL to analyze (e.g., https://example.com)"
+                                    class="w-full px-6 py-4 text-lg bg-gray-700 border border-gray-600 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-200"
+                                    required
+                                >
+                            </div>
+                            
+                            <button 
+                                type="submit" 
+                                id="submitBtn"
+                                class="w-full md:w-auto px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white font-semibold rounded-xl transition-all duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2 focus:ring-offset-gray-900 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                            >
+                                <span id="btnText">Check</span>
+                                <div id="loadingSpinner" class="hidden">
+                                    <div class="spinner mx-auto"></div>
+                                </div>
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="loadingState" class="hidden">
+                        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
+                            <div class="flex flex-col items-center space-y-4">
+                                <div class="spinner"></div>
+                                <p class="text-lg text-gray-300">Analyzing URL with clustering model...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Area -->
+                    <div id="resultsArea" class="hidden">
+                        <!-- Results will be dynamically inserted here -->
+                    </div>
+                </div>
+
+                <!-- Dendrogram Tab -->
+                <div id="dendrogramContent" class="tab-content hidden">
+                    <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
+                        <h2 class="text-2xl font-bold text-white mb-6 text-center">
+                            <i class="fas fa-sitemap mr-2"></i>Hierarchical Clustering Dendrogram
+                        </h2>
+                        <div id="dendrogramContainer" class="text-center">
+                            <div id="dendrogramLoading" class="flex flex-col items-center space-y-4">
+                                <div class="spinner"></div>
+                                <p class="text-lg text-gray-300">Generating dendrogram...</p>
+                            </div>
+                            <div id="dendrogramImage" class="hidden">
+                                <!-- Dendrogram image will be inserted here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Analytics Tab -->
+                <div id="analyticsContent" class="tab-content hidden">
+                    <div class="space-y-8">
+                        <!-- Analytics Overview -->
+                        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
+                            <h2 class="text-2xl font-bold text-white mb-6 text-center">
+                                <i class="fas fa-chart-bar mr-2"></i>Cluster Analytics Dashboard
+                            </h2>
+                            <div id="analyticsContainer">
+                                <div id="analyticsLoading" class="flex flex-col items-center space-y-4">
+                                    <div class="spinner"></div>
+                                    <p class="text-lg text-gray-300">Loading analytics...</p>
+                                </div>
+                                <div id="analyticsData" class="hidden">
+                                    <!-- Analytics data will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Interactive Plots -->
+                        <div class="bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700">
+                            <h2 class="text-2xl font-bold text-white mb-6 text-center">
+                                <i class="fas fa-chart-line mr-2"></i>Interactive Visualizations
+                            </h2>
+                            <div id="plotsContainer">
+                                <div id="plotsLoading" class="flex flex-col items-center space-y-4">
+                                    <div class="spinner"></div>
+                                    <p class="text-lg text-gray-300">Generating plots...</p>
+                                </div>
+                                <div id="plotsData" class="hidden space-y-8">
+                                    <!-- Interactive plots will be inserted here -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-20 py-8 border-t border-gray-700">
+        <div class="container mx-auto px-4 text-center">
+            <p class="text-gray-400">
+                Powered by Hierarchical Clustering & Machine Learning
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab management
+        const detectorTab = document.getElementById('detectorTab');
+        const dendrogramTab = document.getElementById('dendrogramTab');
+        const analyticsTab = document.getElementById('analyticsTab');
+        const detectorContent = document.getElementById('detectorContent');
+        const dendrogramContent = document.getElementById('dendrogramContent');
+        const analyticsContent = document.getElementById('analyticsContent');
+
+        // URL Detector elements
+        const form = document.getElementById('urlForm');
+        const urlInput = document.getElementById('urlInput');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const loadingState = document.getElementById('loadingState');
+        const resultsArea = document.getElementById('resultsArea');
+
+        // Tab switching
+        function switchTab(activeTab, activeContent) {
+            // Reset all tabs
+            [detectorTab, dendrogramTab, analyticsTab].forEach(tab => {
+                tab.className = 'px-6 py-3 bg-gray-700 text-gray-300 rounded-lg font-semibold transition-all duration-200 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500';
+            });
+            [detectorContent, dendrogramContent, analyticsContent].forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // Activate selected tab
+            activeTab.className = 'px-6 py-3 bg-cyan-600 text-white rounded-lg font-semibold transition-all duration-200 hover:bg-cyan-700 focus:outline-none focus:ring-2 focus:ring-cyan-500';
+            activeContent.classList.remove('hidden');
+        }
+
+        detectorTab.addEventListener('click', () => switchTab(detectorTab, detectorContent));
+        dendrogramTab.addEventListener('click', () => {
+            switchTab(dendrogramTab, dendrogramContent);
+            loadDendrogram();
+        });
+        analyticsTab.addEventListener('click', () => {
+            switchTab(analyticsTab, analyticsContent);
+            loadAnalytics();
+        });
+
+        // URL Analysis functionality
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const url = urlInput.value.trim();
+            if (!url) return;
+
+            // Show loading state
+            setLoadingState(true);
+            resultsArea.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ url: url })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    displayResult(data);
+                } else {
+                    displayError(data.error || 'Analysis failed');
+                }
+            } catch (error) {
+                displayError('Network error. Please try again.');
+            } finally {
+                setLoadingState(false);
+            }
+        });
+
+        function setLoadingState(loading) {
+            if (loading) {
+                submitBtn.disabled = true;
+                btnText.textContent = 'Analyzing...';
+                loadingSpinner.classList.remove('hidden');
+                loadingState.classList.remove('hidden');
+            } else {
+                submitBtn.disabled = false;
+                btnText.textContent = 'Check';
+                loadingSpinner.classList.add('hidden');
+                loadingState.classList.add('hidden');
+            }
+        }
+
+        function displayResult(data) {
+            const isPhishing = data.is_phishing;
+            const confidence = data.confidence;
+            const url = data.url;
+            const dendrogram = data.dendrogram;
+            const analytics = data.analytics;
+            const aiInterpretation = data.ai_interpretation;
+
+            const resultCard = document.createElement('div');
+            resultCard.className = 'result-card fade-in bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-gray-700';
+            
+            if (isPhishing) {
+                resultCard.className += ' border-red-500 bg-red-500/10';
+                resultCard.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Main Result -->
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-exclamation-triangle text-red-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-red-400">Phishing Attempt Detected</h3>
+                            <p class="text-gray-300 text-center max-w-md">
+                                This URL appears to be suspicious and may be attempting to steal your personal information.
+                            </p>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
+                                <div class="text-4xl font-bold text-red-400">${confidence}%</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                <strong>URL:</strong> ${url}
+                            </div>
+                        </div>
+                        
+                        <!-- AI Interpretation -->
+                        ${aiInterpretation ? generateAIInterpretationHTML(aiInterpretation) : ''}
+                        
+                        <!-- URL-Specific Analytics -->
+                        ${analytics ? generateURLAnalyticsHTML(analytics) : ''}
+                        
+                        <!-- URL-Specific Dendrogram -->
+                        ${dendrogram ? generateDendrogramHTML(dendrogram, url) : ''}
+                    </div>
+                `;
+            } else {
+                resultCard.className += ' border-green-500 bg-green-500/10';
+                resultCard.innerHTML = `
+                    <div class="space-y-6">
+                        <!-- Main Result -->
+                        <div class="flex flex-col items-center space-y-4">
+                            <div class="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center">
+                                <i class="fas fa-check-circle text-green-400 text-2xl"></i>
+                            </div>
+                            <h3 class="text-2xl font-bold text-green-400">Link Appears Safe</h3>
+                            <p class="text-gray-300 text-center max-w-md">
+                                This URL appears to be legitimate and safe to visit.
+                            </p>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-400 mb-2">Confidence Score</p>
+                                <div class="text-4xl font-bold text-green-400">${confidence}%</div>
+                            </div>
+                            <div class="text-sm text-gray-400">
+                                <strong>URL:</strong> ${url}
+                            </div>
+                        </div>
+                        
+                        <!-- AI Interpretation -->
+                        ${aiInterpretation ? generateAIInterpretationHTML(aiInterpretation) : ''}
+                        
+                        <!-- URL-Specific Analytics -->
+                        ${analytics ? generateURLAnalyticsHTML(analytics) : ''}
+                        
+                        <!-- URL-Specific Dendrogram -->
+                        ${dendrogram ? generateDendrogramHTML(dendrogram, url) : ''}
+                    </div>
+                `;
+            }
+
+            resultsArea.innerHTML = '';
+            resultsArea.appendChild(resultCard);
+            resultsArea.classList.remove('hidden');
+        }
+        
+        function generateAIInterpretationHTML(aiInterpretation) {
+            if (!aiInterpretation) {
+                return '<div class="mt-8 pt-6 border-t border-gray-600"><p class="text-gray-400 text-center">AI interpretation not available</p></div>';
+            }
+            
+            return `
+                <div class="mt-8 pt-6 border-t border-gray-600">
+                    <h4 class="text-xl font-semibold text-white mb-4 text-center">
+                        <i class="fas fa-robot mr-2"></i>AI-Powered Analysis
+                    </h4>
+                    
+                    <!-- Main AI Interpretation -->
+                    <div class="bg-gradient-to-r from-blue-900/30 to-purple-900/30 rounded-lg p-6 mb-6 border border-blue-500/30">
+                        <h5 class="text-lg font-semibold text-blue-300 mb-3">
+                            <i class="fas fa-brain mr-2"></i>Intelligent Analysis
+                        </h5>
+                        <div class="text-gray-200 whitespace-pre-line leading-relaxed">
+                            ${aiInterpretation.ai_interpretation || 'No AI interpretation available'}
+                        </div>
+                    </div>
+                    
+                    <!-- Confidence Explanation -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h5 class="text-sm font-semibold text-cyan-400 mb-2">
+                                <i class="fas fa-chart-line mr-2"></i>Confidence Level
+                            </h5>
+                            <p class="text-gray-300 text-sm">
+                                ${aiInterpretation.confidence_explanation || 'No confidence explanation available'}
+                            </p>
+                        </div>
+                        
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h5 class="text-sm font-semibold text-cyan-400 mb-2">
+                                <i class="fas fa-search mr-2"></i>Key Indicators
+                            </h5>
+                            <div class="text-gray-300 text-sm whitespace-pre-line">
+                                ${aiInterpretation.feature_insights || 'No feature insights available'}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recommendations -->
+                    <div class="bg-gray-700/50 rounded-lg p-4">
+                        <h5 class="text-sm font-semibold text-cyan-400 mb-3">
+                            <i class="fas fa-lightbulb mr-2"></i>Recommendations
+                        </h5>
+                        <div class="space-y-2">
+                            ${aiInterpretation.recommendations ? aiInterpretation.recommendations.map(rec => 
+                                `<div class="flex items-start space-x-2">
+                                    <span class="text-yellow-400 mt-1">•</span>
+                                    <span class="text-gray-300 text-sm">${rec}</span>
+                                </div>`
+                            ).join('') : '<p class="text-gray-400 text-sm">No recommendations available</p>'}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateURLAnalyticsHTML(analytics) {
+            if (!analytics || !analytics.neighbor_analysis || !analytics.cluster_characteristics) {
+                return '<div class="mt-8 pt-6 border-t border-gray-600"><p class="text-gray-400 text-center">Analytics data not available</p></div>';
+            }
+            
+            const neighbor = analytics.neighbor_analysis;
+            const cluster = analytics.cluster_characteristics;
+            const outlier = analytics.outlier_score || 0;
+            
+            // Calculate percentages for better understanding
+            const phishingPercentage = neighbor.total_neighbors > 0 ? 
+                Math.round((neighbor.phishing_neighbors / neighbor.total_neighbors) * 100) : 0;
+            const safePercentage = neighbor.total_neighbors > 0 ? 
+                Math.round((neighbor.safe_neighbors / neighbor.total_neighbors) * 100) : 0;
+            
+            // Determine outlier level
+            const outlierLevel = outlier > 0.8 ? 'Very High' : 
+                                outlier > 0.6 ? 'High' : 
+                                outlier > 0.4 ? 'Medium' : 
+                                outlier > 0.2 ? 'Low' : 'Very Low';
+            
+            // Determine confidence level
+            const confidenceLevel = cluster.cluster_confidence > 0.9 ? 'Very High' :
+                                   cluster.cluster_confidence > 0.8 ? 'High' :
+                                   cluster.cluster_confidence > 0.7 ? 'Medium' :
+                                   cluster.cluster_confidence > 0.6 ? 'Low' : 'Very Low';
+            
+            return `
+                <div class="mt-8 pt-6 border-t border-gray-600">
+                    <h4 class="text-xl font-semibold text-white mb-4 text-center">
+                        <i class="fas fa-chart-line mr-2"></i>URL Analysis Details
+                    </h4>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                        <!-- Cluster Assignment -->
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h5 class="text-sm font-semibold text-cyan-400 mb-2">
+                                <i class="fas fa-layer-group mr-1"></i>AI Classification
+                            </h5>
+                            <div class="space-y-3">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold ${cluster.is_phishing_cluster ? 'text-red-400' : 'text-green-400'} mb-1">
+                                        ${cluster.is_phishing_cluster ? '🚨 PHISHING' : '✅ SAFE'}
+                                    </div>
+                                    <p class="text-xs text-gray-400">Based on machine learning analysis</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-300 text-sm">Confidence Level:</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-cyan-400 font-semibold">${confidenceLevel}</span>
+                                            <div class="w-16 bg-gray-600 rounded-full h-2">
+                                                <div class="bg-cyan-400 h-2 rounded-full" style="width: ${cluster.cluster_confidence * 100}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <p class="text-xs text-gray-500">
+                                        ${confidenceLevel === 'Very High' ? 'The AI is very certain about this classification' :
+                                          confidenceLevel === 'High' ? 'The AI is quite confident in this result' :
+                                          confidenceLevel === 'Medium' ? 'The AI is reasonably certain but some uncertainty exists' :
+                                          confidenceLevel === 'Low' ? 'The AI is uncertain - treat with caution' :
+                                          'The AI is highly uncertain about this classification'}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Neighbor Analysis -->
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h5 class="text-sm font-semibold text-cyan-400 mb-2">
+                                <i class="fas fa-users mr-1"></i>Similar URLs Analysis
+                            </h5>
+                            <div class="space-y-3">
+                                <div class="text-center mb-3">
+                                    <div class="text-lg font-bold text-white">${neighbor.total_neighbors}</div>
+                                    <p class="text-xs text-gray-400">Similar URLs analyzed</p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-300 text-sm">Phishing URLs:</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-red-400 font-semibold">${neighbor.phishing_neighbors}</span>
+                                            <span class="text-xs text-gray-500">(${phishingPercentage}%)</span>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-300 text-sm">Safe URLs:</span>
+                                        <div class="flex items-center space-x-2">
+                                            <span class="text-green-400 font-semibold">${neighbor.safe_neighbors}</span>
+                                            <span class="text-xs text-gray-500">(${safePercentage}%)</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                                        <span>Phishing</span>
+                                        <span>Safe</span>
+                                    </div>
+                                    <div class="w-full bg-gray-600 rounded-full h-2">
+                                        <div class="flex h-2 rounded-full">
+                                            <div class="bg-red-400" style="width: ${phishingPercentage}%"></div>
+                                            <div class="bg-green-400" style="width: ${safePercentage}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500 mt-2">
+                                    ${phishingPercentage > 70 ? 'Most similar URLs are phishing - this is concerning' :
+                                      phishingPercentage > 50 ? 'More similar URLs are phishing than safe' :
+                                      phishingPercentage > 30 ? 'Some similar URLs are phishing - be cautious' :
+                                      'Most similar URLs are safe - this is reassuring'}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <!-- Outlier Score -->
+                        <div class="bg-gray-700/50 rounded-lg p-4">
+                            <h5 class="text-sm font-semibold text-cyan-400 mb-2">
+                                <i class="fas fa-exclamation-triangle mr-1"></i>URL Uniqueness
+                            </h5>
+                            <div class="space-y-3">
+                                <div class="text-center">
+                                    <div class="text-2xl font-bold ${outlier > 0.6 ? 'text-yellow-400' : outlier > 0.3 ? 'text-orange-400' : 'text-green-400'} mb-1">
+                                        ${outlierLevel}
+                                    </div>
+                                    <p class="text-xs text-gray-400">How unusual this URL is</p>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-gray-300 text-sm">Uniqueness:</span>
+                                        <span class="text-white font-semibold">${(outlier * 100).toFixed(1)}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-600 rounded-full h-2">
+                                        <div class="bg-gradient-to-r from-green-400 via-yellow-400 to-red-400 h-2 rounded-full" 
+                                             style="width: ${outlier * 100}%"></div>
+                                    </div>
+                                </div>
+                                
+                                <p class="text-xs text-gray-500">
+                                    ${outlierLevel === 'Very High' ? 'This URL is very unusual compared to known patterns - be extra cautious' :
+                                      outlierLevel === 'High' ? 'This URL is quite unique - may be suspicious or new' :
+                                      outlierLevel === 'Medium' ? 'This URL is somewhat unusual but not extremely so' :
+                                      outlierLevel === 'Low' ? 'This URL follows common patterns - appears normal' :
+                                      'This URL is very typical - follows standard patterns'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Feature Contributions -->
+                    <div class="bg-gray-700/50 rounded-lg p-4">
+                        <h5 class="text-sm font-semibold text-cyan-400 mb-3">
+                            <i class="fas fa-microscope mr-1"></i>Key Analysis Factors
+                        </h5>
+                        <p class="text-xs text-gray-400 mb-4">These are the most important factors that influenced the AI's decision:</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${analytics.feature_contributions && Object.keys(analytics.feature_contributions).length > 0 
+                                ? Object.entries(analytics.feature_contributions)
+                                    .sort((a, b) => Math.abs(b[1].contribution) - Math.abs(a[1].contribution))
+                                    .slice(0, 6)
+                                    .map(([feature, data]) => {
+                                        const featureName = feature.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                                        const impact = Math.abs(data.contribution);
+                                        const impactLevel = impact > 0.5 ? 'High' : impact > 0.2 ? 'Medium' : 'Low';
+                                        const impactColor = impact > 0.5 ? 'text-red-400' : impact > 0.2 ? 'text-yellow-400' : 'text-green-400';
+                                        
+                                        // Get the phishing cluster from the analytics data
+                                        const phishingCluster = analytics.cluster_characteristics?.phishing_cluster || 1;
+                                        
+                                        // Determine if this feature pulls toward phishing or safe
+                                        const pullsTowardPhishing = (phishingCluster === 1 && data.pulls_toward_cluster_1) || 
+                                                                   (phishingCluster === 0 && data.pulls_toward_cluster_0);
+                                        
+                                        return `
+                                            <div class="p-3 bg-gray-600/50 rounded-lg border-l-4 ${pullsTowardPhishing ? 'border-red-400' : 'border-green-400'}">
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <span class="text-gray-200 text-sm font-medium">${featureName}</span>
+                                                    <span class="text-xs ${pullsTowardPhishing ? 'text-red-400' : 'text-green-400'} font-semibold">
+                                                        ${pullsTowardPhishing ? '🚨 Phishing' : '✅ Safe'}
+                                                    </span>
+                                                </div>
+                                                <div class="flex justify-between items-center">
+                                                    <span class="text-xs text-gray-400">Impact: </span>
+                                                    <div class="flex items-center space-x-2">
+                                                        <span class="text-xs ${impactColor} font-semibold">${impactLevel}</span>
+                                                        <div class="w-12 bg-gray-500 rounded-full h-1">
+                                                            <div class="bg-cyan-400 h-1 rounded-full" style="width: ${Math.min(impact * 100, 100)}%"></div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p class="text-xs text-gray-500 mt-1">
+                                                    ${pullsTowardPhishing ? 
+                                                        'This factor suggests the URL may be malicious' : 
+                                                        'This factor suggests the URL appears legitimate'}
+                                                </p>
+                                            </div>
+                                        `;
+                                    }).join('')
+                                : '<p class="text-gray-400 text-center col-span-2">Feature analysis not available</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function generateDendrogramHTML(dendrogram, url) {
+            if (!dendrogram) {
+                return `
+                    <div class="mt-8 pt-6 border-t border-gray-600">
+                        <h4 class="text-xl font-semibold text-white mb-4 text-center">
+                            <i class="fas fa-sitemap mr-2"></i>URL Clustering Position
+                        </h4>
+                        <p class="text-gray-400 text-center">Dendrogram not available for this URL</p>
+                    </div>
+                `;
+            }
+            
+            return `
+                <div class="mt-8 pt-6 border-t border-gray-600">
+                    <h4 class="text-xl font-semibold text-white mb-4 text-center">
+                        <i class="fas fa-sitemap mr-2"></i>URL Clustering Position
+                    </h4>
+                    <p class="text-gray-400 text-sm text-center mb-4">
+                        This dendrogram shows where your URL fits in the clustering hierarchy. The red marker indicates your analyzed URL.
+                    </p>
+                    <div class="text-center">
+                        <img src="data:image/png;base64,${dendrogram}" alt="URL Dendrogram" class="max-w-full h-auto rounded-lg shadow-lg mx-auto" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <p class="text-gray-400 text-center" style="display:none;">Failed to load dendrogram image</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayError(message) {
+            const errorCard = document.createElement('div');
+            errorCard.className = 'result-card fade-in bg-gray-800/50 backdrop-blur rounded-2xl p-8 border border-red-500 bg-red-500/10';
+            errorCard.innerHTML = `
+                <div class="flex flex-col items-center space-y-4">
+                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-circle text-red-400 text-2xl"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-red-400">Error</h3>
+                    <p class="text-gray-300 text-center">${message}</p>
+                </div>
+            `;
+
+            resultsArea.innerHTML = '';
+            resultsArea.appendChild(errorCard);
+            resultsArea.classList.remove('hidden');
+        }
+
+        // Dendrogram functionality
+        async function loadDendrogram() {
+            const loading = document.getElementById('dendrogramLoading');
+            const image = document.getElementById('dendrogramImage');
+            
+            loading.classList.remove('hidden');
+            image.classList.add('hidden');
+            
+            try {
+                const response = await fetch('/dendrogram');
+                const data = await response.json();
+                
+                if (data.success) {
+                    image.innerHTML = `<img src="data:image/png;base64,${data.dendrogram}" alt="Dendrogram" class="max-w-full h-auto rounded-lg shadow-lg">`;
+                    loading.classList.add('hidden');
+                    image.classList.remove('hidden');
+                } else {
+                    throw new Error(data.error || 'Failed to load dendrogram');
+                }
+            } catch (error) {
+                loading.innerHTML = `
+                    <div class="flex flex-col items-center space-y-4">
+                        <i class="fas fa-exclamation-circle text-red-400 text-4xl"></i>
+                        <p class="text-red-400">Error loading dendrogram: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Analytics functionality
+        async function loadAnalytics() {
+            const analyticsLoading = document.getElementById('analyticsLoading');
+            const analyticsData = document.getElementById('analyticsData');
+            const plotsLoading = document.getElementById('plotsLoading');
+            const plotsData = document.getElementById('plotsData');
+            
+            analyticsLoading.classList.remove('hidden');
+            analyticsData.classList.add('hidden');
+            plotsLoading.classList.remove('hidden');
+            plotsData.classList.add('hidden');
+            
+            try {
+                // Load analytics data
+                const analyticsResponse = await fetch('/analytics');
+                const analyticsResult = await analyticsResponse.json();
+                
+                if (analyticsResult.success) {
+                    displayAnalytics(analyticsResult.analytics);
+                    analyticsLoading.classList.add('hidden');
+                    analyticsData.classList.remove('hidden');
+                } else {
+                    throw new Error(analyticsResult.error || 'Failed to load analytics');
+                }
+
+                // Load interactive plots
+                const plotsResponse = await fetch('/plots');
+                const plotsResult = await plotsResponse.json();
+                
+                if (plotsResult.success) {
+                    displayPlots(plotsResult.plots);
+                    plotsLoading.classList.add('hidden');
+                    plotsData.classList.remove('hidden');
+                } else {
+                    throw new Error(plotsResult.error || 'Failed to load plots');
+                }
+            } catch (error) {
+                analyticsLoading.innerHTML = `
+                    <div class="flex flex-col items-center space-y-4">
+                        <i class="fas fa-exclamation-circle text-red-400 text-4xl"></i>
+                        <p class="text-red-400">Error loading analytics: ${error.message}</p>
+                    </div>
+                `;
+                plotsLoading.innerHTML = `
+                    <div class="flex flex-col items-center space-y-4">
+                        <i class="fas fa-exclamation-circle text-red-400 text-4xl"></i>
+                        <p class="text-red-400">Error loading plots: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function displayAnalytics(analytics) {
+            const container = document.getElementById('analyticsData');
+            
+            const clusterStats = analytics.cluster_statistics;
+            const qualityMetrics = analytics.quality_metrics;
+            const featureImportance = analytics.feature_importance;
+            const separation = analytics.cluster_separation;
+            
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Quality Metrics -->
+                    <div class="bg-gray-700/50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Quality Metrics</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Silhouette Score:</span>
+                                <span class="text-cyan-400 font-semibold">${qualityMetrics.silhouette_score.toFixed(3)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Calinski-Harabasz:</span>
+                                <span class="text-cyan-400 font-semibold">${qualityMetrics.calinski_harabasz_score.toFixed(1)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cluster Separation -->
+                    <div class="bg-gray-700/50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Cluster Separation</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Center Distance:</span>
+                                <span class="text-cyan-400 font-semibold">${separation.center_distance.toFixed(3)}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Separation Ratio:</span>
+                                <span class="text-cyan-400 font-semibold">${separation.separation_ratio.toFixed(2)}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Model Info -->
+                    <div class="bg-gray-700/50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Model Information</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Samples:</span>
+                                <span class="text-cyan-400 font-semibold">${analytics.model_info.n_samples.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Features:</span>
+                                <span class="text-cyan-400 font-semibold">${analytics.model_info.n_features}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cluster Statistics -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <div class="bg-gray-700/50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Cluster 0 Statistics</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Size:</span>
+                                <span class="text-cyan-400 font-semibold">${clusterStats[0].size.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Percentage:</span>
+                                <span class="text-cyan-400 font-semibold">${clusterStats[0].percentage.toFixed(1)}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Phishing Ratio:</span>
+                                <span class="text-red-400 font-semibold">${(clusterStats[0].phishing_ratio * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Safe Ratio:</span>
+                                <span class="text-green-400 font-semibold">${(clusterStats[0].safe_ratio * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-gray-700/50 rounded-lg p-6">
+                        <h3 class="text-lg font-semibold text-white mb-4">Cluster 1 Statistics</h3>
+                        <div class="space-y-3">
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Size:</span>
+                                <span class="text-cyan-400 font-semibold">${clusterStats[1].size.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Percentage:</span>
+                                <span class="text-cyan-400 font-semibold">${clusterStats[1].percentage.toFixed(1)}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Phishing Ratio:</span>
+                                <span class="text-red-400 font-semibold">${(clusterStats[1].phishing_ratio * 100).toFixed(1)}%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-300">Safe Ratio:</span>
+                                <span class="text-green-400 font-semibold">${(clusterStats[1].safe_ratio * 100).toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature Importance -->
+                <div class="bg-gray-700/50 rounded-lg p-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Top Feature Importance</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        ${Object.entries(featureImportance)
+                            .sort((a, b) => b[1] - a[1])
+                            .slice(0, 9)
+                            .map(([feature, importance]) => `
+                                <div class="flex justify-between items-center p-3 bg-gray-600/50 rounded">
+                                    <span class="text-gray-300 text-sm">${feature}</span>
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-20 bg-gray-500 rounded-full h-2">
+                                            <div class="bg-cyan-400 h-2 rounded-full" style="width: ${importance * 100}%"></div>
+                                        </div>
+                                        <span class="text-cyan-400 text-sm font-semibold">${(importance * 100).toFixed(1)}%</span>
+                                    </div>
+                                </div>
+                            `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayPlots(plots) {
+            const container = document.getElementById('plotsData');
+            
+            container.innerHTML = '';
+            
+            // Feature Importance Plot
+            if (plots.feature_importance) {
+                const importanceDiv = document.createElement('div');
+                importanceDiv.innerHTML = '<h3 class="text-xl font-semibold text-white mb-4">Feature Importance</h3>';
+                const importancePlot = document.createElement('div');
+                importancePlot.id = 'feature-importance-plot';
+                importanceDiv.appendChild(importancePlot);
+                container.appendChild(importanceDiv);
+                
+                Plotly.newPlot('feature-importance-plot', JSON.parse(plots.feature_importance).data, JSON.parse(plots.feature_importance).layout, {responsive: true});
+            }
+            
+            // Cluster Distribution Plot
+            if (plots.cluster_distribution) {
+                const distributionDiv = document.createElement('div');
+                distributionDiv.innerHTML = '<h3 class="text-xl font-semibold text-white mb-4">Cluster Distribution</h3>';
+                const distributionPlot = document.createElement('div');
+                distributionPlot.id = 'cluster-distribution-plot';
+                distributionDiv.appendChild(distributionPlot);
+                container.appendChild(distributionDiv);
+                
+                Plotly.newPlot('cluster-distribution-plot', JSON.parse(plots.cluster_distribution).data, JSON.parse(plots.cluster_distribution).layout, {responsive: true});
+            }
+            
+            // 2D Cluster Visualization
+            if (plots.cluster_2d) {
+                const cluster2dDiv = document.createElement('div');
+                cluster2dDiv.innerHTML = '<h3 class="text-xl font-semibold text-white mb-4">2D Cluster Visualization</h3>';
+                const cluster2dPlot = document.createElement('div');
+                cluster2dPlot.id = 'cluster-2d-plot';
+                cluster2dDiv.appendChild(cluster2dPlot);
+                container.appendChild(cluster2dDiv);
+                
+                Plotly.newPlot('cluster-2d-plot', JSON.parse(plots.cluster_2d).data, JSON.parse(plots.cluster_2d).layout, {responsive: true});
+            }
+        }
+    </script>
+</body>
+</html>
